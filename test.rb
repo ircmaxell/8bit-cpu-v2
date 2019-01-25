@@ -3,6 +3,8 @@ Dir["./instructions/*.rb"].each {|file| require file }
 
 i = InstructionSet.new
 
+
+
 computer = Computer.new(i, [
 	i.compile(:add, [0x0000]),
 	i.compile(:cmp),

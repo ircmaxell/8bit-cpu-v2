@@ -11,7 +11,7 @@ class Alu < Instruction
 			xor: [0x14, [:aluFunc0, :aluFunc1]],
 			invert: [0x15, [:aluZero, :aluInvert, :aluFunc0, :aluFunc1]],
 			inc: [0x16, [:aluZero, :aluCarry]],
-			dec: [0x17, [:aluZero, :aluInvert]],
+			dec: [0x17, [:aluZero, :aluInvert]],			
 		}[symbol]
 		@name = symbol.to_s
 		@code = ops[0]

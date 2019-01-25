@@ -13,7 +13,6 @@ class Computer
 		@registers = {}
 		@instructionSet = instructionSet
 		initializeRegisters
-		initializeConstants
 		@memory = Memory.new(@clock, @addressBus, @dataBus, @controlset.controlLines[:readMemory], @controlset.controlLines[:writeMemory], @registers, rom)
 		cl(:halt).onHigh do 
 			@clock.halt
@@ -30,7 +29,7 @@ class Computer
 	def reset
 		@controlset.reset
 		@clock.reset
-		@controlset.set([:read0xC000, :writeProgramCounter])
+		@registers[:pc].value = 0xC000
 		@clock.tick
 		@counter.reset
 	end
@@ -64,6 +63,7 @@ class Computer
 			a: [:readA, :writeA],
 			b: [:readB, :writeB],
 			t: [:readT, :writeT],
+			segment: [:readSegment, :writeSegment],
 			flags: [:readFlags, :writeFlags],
 			instruction: [:readInstruction, :writeInstruction],
 		}.each do |sym, ops|
@@ -71,6 +71,7 @@ class Computer
 		end
 		{
 			pc: [:readProgramCounter, :writeProgramCounter],
+			sc: [:readStackCounter, :writeStackCounter],
 			m: [:readM, :writeM],
 			tm: [:readTM, :notConnected],
 		}.each do |sym, ops|
@@ -89,24 +90,11 @@ class Computer
 		@registers[:inc] = IncrementRegister.new(@addressBus, cl(:readAddressIncrement), cl(:writeAddressIncrement))
 	end
 
-	def initializeConstants
-		{
-			0 => [:read0],
-			1 => [:read1],
-		}.each do |sym, ops|
-			@registers[sym] = ConstRegister.new(sym, @dataBus, cl(ops[0]))
-		end
-		{
-			0xC000 => [:read0xC000],
-		}.each do |sym, ops|
-			@registers[sym] = ConstRegister.new(sym, @addressBus, cl(ops[0]))
-		end
-	end
 
 	def dump_state
 		puts "Registers: "
 		@registers.each do |sym, register|
-			if sym == :m || sym == :pc || sym == :inc || sym == :tm
+			if sym == :m || sym == :pc || sym == :inc || sym == :tm || sym == :sc
 				puts "    #{sym}: #{"%04x" % register.value}" 
 			else
 				puts "    #{sym}: #{"%02x" % register.value}" 
